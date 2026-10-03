@@ -1,0 +1,421 @@
+/* =====================================================================
+   css/style.css
+   ---------------------------------------------------------------------
+   Visual design for The AI Hero's Quest.
+   Palette: night forest greens, spirit teal, old gold, parchment,
+   with AUF crimson in the crest.
+   ===================================================================== */
+
+/* ---------- 1. Design tokens (change colors here) ---------- */
+:root {
+  --night:     #05120E;   /* deepest background */
+  --forest:    #0F2A22;   /* panels */
+  --moss:      #1F4A3C;   /* stone tablets */
+  --spirit:    #7FE7C4;   /* magical teal glow */
+  --gold:      #E9C46A;   /* old gold */
+  --gold-deep: #B8892E;   /* darker gold for borders */
+  --gold-pale: #FFF1C4;   /* highlight gold */
+  --parchment: #F3E7C8;   /* main text color */
+  --ink:       #2B1D0E;   /* text on parchment */
+  --crimson:   #C8102E;   /* AUF red */
+  --hero-color: #E9C46A;  /* changed by JavaScript to the visitor's hero color */
+
+  --display: "Uncial Antiqua", "Palatino Linotype", Georgia, serif;  /* titles */
+  --body:    "Spectral", Georgia, "Times New Roman", serif;          /* reading text */
+
+  /* Chamfered (cut-corner) shape used by buttons and panels */
+  --chamfer: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px),
+                     calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+}
+
+/* ---------- 2. Page basics ---------- */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  overflow: hidden;                         /* the booth app never scrolls the whole page */
+  background:
+    radial-gradient(ellipse at 50% 35%, #15392F 0%, #0A2019 45%, var(--night) 80%);
+  color: var(--parchment);
+  font-family: var(--body);
+  font-size: clamp(16px, 1.2vw, 20px);
+  line-height: 1.6;
+  -webkit-user-select: none; user-select: none;   /* no accidental text selection on touch */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;               /* removes double-tap zoom delay */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+button { font: inherit; touch-action: manipulation; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--spirit); outline-offset: 3px; }
+[hidden] { display: none !important; }
+
+/* Canvas for particles, behind everything */
+#particles { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+/* Drifting mist: two soft blurred blobs that slowly move */
+#mist {
+  position: fixed; inset: -10%; z-index: 1; pointer-events: none; opacity: 0.35;
+  background:
+    radial-gradient(40% 25% at 20% 80%, rgba(127,231,196,0.18), transparent 70%),
+    radial-gradient(35% 20% at 80% 75%, rgba(233,196,106,0.10), transparent 70%);
+  animation: mist 26s ease-in-out infinite alternate;
+}
+@keyframes mist { to { transform: translate(4%, -3%) scale(1.08); } }
+
+/* Dark edges that focus attention on the center */
+#vignette {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.65) 100%);
+}
+
+/* ---------- 3. Top bar ---------- */
+.topbar {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 30;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(14px, 2.5vw, 32px);
+}
+.crest { display: flex; align-items: center; gap: 12px; font-family: var(--display); color: var(--gold); font-size: clamp(0.95rem, 1.3vw, 1.2rem); cursor: default; }
+/* A small AUF-crimson shield with a gold edge */
+.crest-mark {
+  width: 30px; height: 36px; background: var(--crimson);
+  border: 2px solid var(--gold);
+  border-radius: 4px 4px 50% 50% / 4px 4px 60% 60%;
+  box-shadow: 0 0 12px rgba(200,16,46,0.6);
+}
+.controls { display: flex; gap: 10px; }
+.ctl {
+  min-width: 56px; height: 56px; padding: 0 12px;
+  font-size: 1.5rem; color: var(--parchment);
+  background: rgba(7, 23, 18, 0.7); border: 1.5px solid var(--gold-deep); border-radius: 12px;
+  transition: opacity .2s, background .2s;
+}
+.ctl-wide { font-size: 1.05rem; font-family: var(--display); }
+.ctl:hover { background: rgba(31, 74, 60, 0.85); }
+.ctl.off { opacity: 0.38; filter: grayscale(1); }   /* toggled off */
+
+/* ---------- 4. Screens and transitions ---------- */
+#stage { position: fixed; inset: 0; z-index: 10; }
+.screen {
+  position: absolute; inset: 0;
+  display: flex; overflow-y: auto; overflow-x: hidden;
+  padding: 96px clamp(16px, 5vw, 72px) 40px;
+  opacity: 0; visibility: hidden;
+  transition: opacity .9s ease, visibility .9s;
+}
+.screen.active { opacity: 1; visibility: visible; }
+/* .inner centers content, but still scrolls when content is taller than the screen */
+.inner { margin: auto; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+/* "rv" = reveal-able element: hidden until JavaScript adds .show */
+.rv { opacity: 0; transform: translateY(18px); transition: opacity .9s ease, transform .9s ease; }
+.rv.show { opacity: 1; transform: none; }
+
+/* ---------- 5. Buttons ---------- */
+.btn {
+  min-height: 72px; padding: 16px 40px;
+  font-family: var(--display); font-size: clamp(1.15rem, 2vw, 1.6rem);
+  border: none; clip-path: var(--chamfer);
+  transition: transform .15s ease, filter .2s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  color: #2A1A05;
+  background: linear-gradient(180deg, var(--gold-pale) 0%, var(--gold) 45%, var(--gold-deep) 100%);
+  filter: drop-shadow(0 0 18px rgba(233,196,106,0.55));
+}
+.btn-primary:hover { filter: drop-shadow(0 0 28px rgba(233,196,106,0.85)); }
+.btn-stone {
+  color: var(--parchment);
+  background: linear-gradient(160deg, var(--moss), var(--forest));
+  box-shadow: inset 0 0 0 2px rgba(233,196,106,0.55);
+}
+.btn-stone:hover { box-shadow: inset 0 0 0 2px var(--gold); }
+/* The main portal button gently "breathes" to invite a tap */
+#btnBegin { margin-top: 18px; padding: 20px 56px; font-size: clamp(1.35rem, 2.6vw, 2rem); animation: breathe 2.8s ease-in-out infinite; }
+@keyframes breathe { 50% { filter: drop-shadow(0 0 34px rgba(233,196,106,0.95)); } }
+
+/* ---------- 6. Screen 1: Portal ---------- */
+.portal { position: relative; width: min(40vh, 62vw); aspect-ratio: 400 / 480; margin-bottom: 8px; }
+.arch { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.arch-opening { animation: portalPulse 5s ease-in-out infinite; }
+@keyframes portalPulse { 50% { opacity: 0.65; } }
+.runes { letter-spacing: 4px; animation: runeGlow 4s ease-in-out infinite; }
+@keyframes runeGlow { 50% { fill: #E9C46A; } }
+.portal-sigil { position: absolute; left: 50%; top: 58%; width: 54%; transform: translate(-50%, -50%); }
+
+.title {
+  margin: 4px 0 0;
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(2.4rem, 6.4vw, 5.6rem); line-height: 1.05;
+  /* Gold lettering with a slow light sweep across it */
+  background: linear-gradient(100deg, var(--gold-deep) 0%, var(--gold) 35%, var(--gold-pale) 50%, var(--gold) 65%, var(--gold-deep) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 22px rgba(233,196,106,0.35));
+  animation: sweep 7s linear infinite;
+}
+@keyframes sweep { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.subtitle { margin: 6px 0 0; font-style: italic; font-size: clamp(1.05rem, 1.9vw, 1.5rem); color: var(--spirit); max-width: 40ch; }
+.hero-count { margin: 18px 0 0; font-size: clamp(1rem, 1.5vw, 1.25rem); color: var(--gold); min-height: 1.6em; }
+.privacy-line { margin: 2px 0 0; font-size: 0.9rem; opacity: 0.6; }
+
+/* ---------- 7. The Honor Sigil (SVG built by visuals.js) ---------- */
+.sigil-slot svg { width: 100%; height: auto; display: block; overflow: visible; }
+.sigil .ring { transform-origin: 100px 100px; }
+.sigil.spin .ring { animation: spin 60s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.sigil .light { opacity: 0.55; transition: opacity .8s ease; cursor: pointer; }
+.sigil .light.lit { opacity: 1; }
+.sigil .light-inner { transform-box: fill-box; transform-origin: center; }
+.sigil .light.lit .light-inner { animation: litPulse 2.2s ease-in-out infinite; }
+@keyframes litPulse { 50% { transform: scale(1.12); } }
+.sigil .light.tap .light-inner { animation: tapPop .5s ease; }
+@keyframes tapPop { 40% { transform: scale(1.3); } }
+/* Assembly animation during the Oracle's analysis */
+.sigil.assemble .ring circle[pathLength] { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.8s ease forwards; }
+.sigil.assemble .ring .ticks { opacity: 0; animation: fadeIn 1s ease 1s forwards; }
+.sigil.assemble .light { opacity: 0; animation: lightIn .8s ease forwards; }
+.sigil.assemble .light-lumen { animation-delay: 1.4s; }
+.sigil.assemble .light-ember { animation-delay: 2.0s; }
+.sigil.assemble .light-star  { animation-delay: 2.6s; }
+.sigil.assemble .core { opacity: 0; animation: fadeIn .8s ease 3.2s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes lightIn { from { opacity: 0; } to { opacity: 0.9; } }
+
+/* ---------- 8. Screen 2: Oracle ---------- */
+.oracle-figure { width: min(34vh, 56vw); }
+.oracle-figure svg { width: 100%; height: auto; display: block; overflow: visible; animation: float 6s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-10px); } }
+.oracle-figure .eye { transform-box: fill-box; transform-origin: center; animation: blink 6s infinite; }
+@keyframes blink { 0%, 46%, 50%, 100% { transform: scaleY(1); } 48% { transform: scaleY(0.1); } }
+.oracle-figure .speck { animation: twinkle 3s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: 0.2; } }
+.oracle-name { margin: 8px 0 0; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: clamp(2rem, 4.2vw, 3.4rem); }
+.oracle-line { margin: 10px 0 26px; font-style: italic; font-size: clamp(1.3rem, 2.6vw, 2.1rem); max-width: 30ch; min-height: 3.3em; color: var(--parchment); }
+
+/* ---------- 9. Screen 3: Mini quest ---------- */
+.pips { display: flex; gap: 14px; list-style: none; padding: 0; margin: 0 0 22px; }
+.pips li { width: 16px; height: 16px; transform: rotate(45deg); border: 2px solid var(--gold-deep); transition: all .4s; }
+.pips li.done { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.pips li.current { border-color: var(--spirit); box-shadow: 0 0 14px var(--spirit); }
+
+.quest-card { width: 100%; max-width: 1150px; transition: opacity .38s ease, transform .38s ease; }
+.quest-card.leave { opacity: 0; transform: translateX(-60px); }
+.quest-card.enter { animation: enter .55s ease; }
+@keyframes enter { from { opacity: 0; transform: translateX(60px); } }
+.quest-num { margin: 0; font-style: italic; color: var(--spirit); font-size: clamp(1rem, 1.6vw, 1.3rem); }
+.quest-title { margin: 2px 0 6px; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: clamp(2rem, 4.6vw, 3.8rem); line-height: 1.1; }
+.quest-text { margin: 0 auto; max-width: 34ch; font-size: clamp(1.3rem, 2.5vw, 2rem); line-height: 1.4; }
+
+.choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 30px; }
+.choices.six { grid-template-columns: repeat(3, 1fr); }
+/* Each choice is a carved stone tablet */
+.choice {
+  display: flex; align-items: center; gap: 18px; text-align: left;
+  min-height: 108px; padding: 18px 24px;
+  font-size: clamp(1.1rem, 1.9vw, 1.5rem); line-height: 1.3; color: var(--parchment);
+  background: linear-gradient(160deg, var(--moss) 0%, var(--forest) 100%);
+  border: none; clip-path: var(--chamfer);
+  box-shadow: inset 0 0 0 2px rgba(233,196,106,0.4);
+  transition: transform .2s ease, box-shadow .25s ease, opacity .35s ease, background .3s ease;
+}
+.choice:hover { box-shadow: inset 0 0 0 2px var(--gold), inset 0 0 30px rgba(127,231,196,0.15); }
+.choice .rune {
+  flex: 0 0 auto; width: 60px; height: 60px; display: grid; place-items: center;
+  font-size: 2rem; border-radius: 50%;
+  background: rgba(0,0,0,0.3); box-shadow: 0 0 0 2px var(--gold-deep);
+}
+.choice.chosen {
+  transform: scale(1.04); color: #22160A;
+  background: linear-gradient(160deg, var(--gold-pale), var(--gold));
+  box-shadow: 0 0 0 3px var(--gold-pale), 0 0 40px var(--gold);
+}
+.choice.faded { opacity: 0.25; }
+
+/* ---------- 10. Screen 4: Analysis ---------- */
+.analysis-head { margin: 0; font-family: var(--display); color: var(--gold); font-size: clamp(1.8rem, 4vw, 3.2rem); }
+.analysis-sigil { width: min(44vh, 70vw); margin: 18px 0; }
+.analysis-status { margin: 0; font-style: italic; color: var(--spirit); font-size: clamp(1.3rem, 2.6vw, 2.1rem); min-height: 1.6em; transition: opacity .35s; }
+.analysis-status.fade { opacity: 0; }
+
+/* ---------- 11. Screen 5: Hero reveal ---------- */
+.reveal-flash { position: absolute; inset: 0; background: #FFF8E1; opacity: 0; pointer-events: none; z-index: 5; }
+.reveal-flash.go { animation: flash 1.4s ease-out; }
+@keyframes flash { 0% { opacity: 0; } 8% { opacity: 0.95; } 100% { opacity: 0; } }
+
+.reveal-kicker { margin: 0; font-family: var(--display); color: var(--gold); font-size: clamp(1.2rem, 2.4vw, 1.9rem); }
+.fallback-note { margin: 4px 0 0; font-style: italic; color: var(--spirit); font-size: 1rem; }
+
+.reveal-grid {
+  display: grid; grid-template-columns: minmax(280px, 0.9fr) 1.1fr; gap: clamp(24px, 4vw, 64px);
+  align-items: center; width: 100%; max-width: 1360px; margin-top: 12px;
+}
+.reveal-hero { display: flex; flex-direction: column; align-items: center; }
+.reveal-sigil { width: min(24vh, 56vw); }
+.hero-pre { margin: 6px 0 0; font-style: italic; font-size: clamp(1.1rem, 2vw, 1.6rem); color: var(--spirit); }
+/* The visitor's hero name: the single most important text in the whole app */
+.hero-name {
+  margin: 0; font-family: var(--display); font-weight: 400; line-height: 1.02;
+  font-size: clamp(2.6rem, 5.4vw, 5rem);
+  color: var(--gold-pale);
+  text-shadow: 0 0 18px var(--hero-color), 0 0 48px var(--hero-color), 0 0 90px rgba(233,196,106,0.4);
+}
+.hero-name.rv { transform: scale(1.5); filter: blur(10px); transition: opacity .7s ease, transform .9s cubic-bezier(.2,.9,.25,1.2), filter .8s ease; }
+.hero-name.rv.show { transform: scale(1); filter: none; }
+.hero-icon { display: block; font-size: 0.7em; margin-bottom: 4px; }
+/* Ribbon banner carrying the primary virtue */
+.virtue-banner {
+  margin-top: 16px; padding: 10px 56px 12px;
+  display: flex; flex-direction: column; align-items: center;
+  background: linear-gradient(180deg, #A50E26, #6E0718);
+  color: var(--gold-pale);
+  clip-path: polygon(0 0, 100% 0, 94% 50%, 100% 100%, 0 100%, 6% 50%);
+  filter: drop-shadow(0 0 16px rgba(200,16,46,0.6));
+}
+.virtue-banner span { font-family: var(--display); font-size: clamp(1.6rem, 3.4vw, 2.8rem); letter-spacing: .08em; line-height: 1.1; }
+.virtue-banner small { font-style: italic; font-size: clamp(0.95rem, 1.5vw, 1.2rem); opacity: .9; }
+
+.reveal-reading { text-align: left; max-width: 62ch; }
+.reveal-reading h3 { margin: 0 0 4px; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: clamp(1.15rem, 1.9vw, 1.55rem); }
+.block { margin-bottom: 18px; }
+.hero-desc { margin: 0; font-size: clamp(1.15rem, 1.8vw, 1.55rem); line-height: 1.55; min-height: 3em; }
+.prophecy {
+  margin: 0 0 20px; padding-left: 18px; border-left: 3px solid var(--gold);
+  font-style: italic; color: var(--gold-pale); font-size: clamp(1.15rem, 1.8vw, 1.5rem); line-height: 1.5;
+}
+.traits { display: flex; flex-wrap: wrap; gap: 12px; }
+.trait {
+  padding: 8px 20px; font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  border: 1.5px solid var(--spirit); border-radius: 999px;
+  background: rgba(127,231,196,0.1); color: var(--parchment);
+  box-shadow: 0 0 14px rgba(127,231,196,0.25);
+  animation: pop .6s cubic-bezier(.2,.9,.3,1.4);
+}
+@keyframes pop { from { opacity: 0; transform: scale(0.4); } }
+/* Parchment scroll for the visitor's quest */
+.scroll {
+  position: relative; padding: 18px 28px 20px;
+  background: linear-gradient(180deg, #F7EED6, #E9D9AE);
+  color: var(--ink); border-radius: 4px;
+  box-shadow: 0 0 30px rgba(233,196,106,0.35);
+  clip-path: inset(0 50% 0 50%);
+  transition: clip-path 1.2s ease, opacity .6s ease;
+}
+.scroll.show { clip-path: inset(0 0 0 0); }
+.scroll h3 { color: #7A4E0E !important; }
+.scroll p { margin: 0; font-style: italic; font-size: clamp(1.15rem, 1.8vw, 1.5rem); line-height: 1.45; }
+
+.reveal-actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 18px; }
+.reveal-actions .btn { min-height: 64px; padding: 12px 26px; font-size: clamp(1rem, 1.6vw, 1.3rem); }
+
+/* ---------- 12. Screen 6: Honor Society ---------- */
+.honor { width: 100%; max-width: 1180px; }
+.honor-closing { margin: 0; font-family: var(--display); color: var(--gold); font-size: clamp(1.8rem, 4vw, 3.2rem); line-height: 1.15; }
+.honor-closing-sub { margin: 6px auto 18px; max-width: 46ch; font-style: italic; font-size: clamp(1.15rem, 2vw, 1.6rem); color: var(--parchment); }
+.honor-body {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 36px; text-align: left;
+  padding: 22px 30px; background: rgba(7, 23, 18, 0.72);
+  border: 2px solid rgba(233,196,106,0.45); border-radius: 14px;
+}
+.honor-name { margin: 0; font-family: var(--display); font-weight: 400; color: var(--gold-pale); font-size: clamp(1.25rem, 2vw, 1.7rem); line-height: 1.25; }
+.honor-body .honor-year { margin: 2px 0 10px; color: var(--spirit); font-style: italic; }
+.honor-body h3 { margin: 14px 0 4px; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: 1.2rem; }
+.honor-body p, .honor-body li { margin: 0; font-size: clamp(0.95rem, 1.2vw, 1.1rem); line-height: 1.5; }
+.honor-col > h3:first-child { margin-top: 0; }
+.honor-body ul { margin: 0; padding-left: 1.2em; }
+.honor-body li { margin-bottom: 4px; }
+.honor-cta { margin: 10px 0 0 !important; color: var(--gold-pale); font-weight: 600; }
+.honor-contact { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
+.qr { background: #fff; padding: 8px; border-radius: 6px; line-height: 0; }
+.qr img, .qr canvas { width: 120px; height: 120px; }
+.honor-ask { margin: 18px 0 12px; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: clamp(1.6rem, 3.4vw, 2.6rem); }
+.honor-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ---------- 13. Modals (Ask, Camera, Secret) ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 40; display: none;
+  align-items: center; justify-content: center; padding: 84px 16px 16px;
+  background: rgba(2, 8, 6, 0.86); backdrop-filter: blur(6px);
+}
+.modal.open { display: flex; animation: fadeIn .4s ease; opacity: 0; animation-fill-mode: forwards; }
+.modal-panel {
+  width: 100%; max-width: 940px; max-height: 100%; overflow-y: auto;
+  padding: clamp(20px, 3vw, 36px); text-align: center;
+  background: linear-gradient(170deg, #143A30, var(--forest) 60%, #0A1F19);
+  clip-path: var(--chamfer); box-shadow: inset 0 0 0 2px var(--gold-deep);
+}
+.modal-panel h2 { margin: 0 0 18px; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: clamp(1.6rem, 3vw, 2.4rem); }
+
+.ask-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ask-chips .btn { min-height: 64px; font-family: var(--body); font-size: clamp(1rem, 1.6vw, 1.25rem); padding: 10px 18px; }
+.ask-type { display: flex; gap: 10px; margin-top: 14px; }
+.ask-type input {
+  flex: 1; min-height: 60px; padding: 0 18px; font: inherit; font-size: 1.15rem;
+  color: var(--parchment); background: rgba(0,0,0,0.35);
+  border: 1.5px solid var(--gold-deep); border-radius: 10px;
+  -webkit-user-select: text; user-select: text;
+}
+.ask-type .btn { min-height: 60px; padding: 8px 28px; }
+.ask-answer { min-height: 4.5em; margin: 22px auto; max-width: 52ch; font-style: italic; color: var(--gold-pale); font-size: clamp(1.15rem, 1.9vw, 1.55rem); line-height: 1.55; }
+
+.camera-panel { max-width: 1100px; }
+.cam-stage { position: relative; width: 100%; }
+#camCanvas { width: 100%; height: auto; max-height: 62vh; object-fit: contain; display: block; background: #000; clip-path: var(--chamfer); }
+.cam-countdown { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: clamp(5rem, 16vw, 12rem); color: var(--gold-pale); text-shadow: 0 0 40px var(--gold); pointer-events: none; }
+.cam-msg { margin: 14px 0; font-size: clamp(1.05rem, 1.7vw, 1.35rem); color: var(--spirit); min-height: 1.6em; }
+.cam-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+.secret-panel { max-width: 760px; box-shadow: inset 0 0 0 2px var(--gold), 0 0 80px rgba(233,196,106,0.4); }
+.secret-panel p { font-size: clamp(1.15rem, 2vw, 1.55rem); font-style: italic; }
+.secret-hint { color: var(--spirit); font-size: 1.05rem !important; }
+
+/* ---------- 14. Veil and toast ---------- */
+.veil {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  background: #020806; opacity: 0; pointer-events: none; transition: opacity 1.2s ease;
+}
+.veil.on { opacity: 1; pointer-events: all; }
+.veil p { font-family: var(--display); color: var(--gold); font-size: clamp(1.4rem, 3vw, 2.4rem); }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70;
+  padding: 10px 20px; border-radius: 10px; background: rgba(0,0,0,0.8); color: var(--parchment);
+  opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+.toast.on { opacity: 1; }
+
+/* ---------- 15. Staff Demo Mode panel ---------- */
+.demo {
+  position: fixed; top: 80px; right: 16px; z-index: 80; width: min(400px, 92vw); max-height: calc(100vh - 100px); overflow-y: auto;
+  padding: 18px; background: #0A1712; border: 2px solid var(--crimson); border-radius: 12px;
+  font-family: var(--body); font-size: 0.95rem; text-align: left; -webkit-user-select: text; user-select: text;
+}
+.demo h2 { margin: 0 0 4px; font-family: var(--display); font-weight: 400; color: var(--gold); font-size: 1.3rem; }
+.demo h3 { margin: 14px 0 6px; font-size: 0.95rem; color: var(--spirit); }
+.demo .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.demo button { padding: 8px 12px; min-height: 40px; color: var(--parchment); background: var(--moss); border: 1px solid var(--gold-deep); border-radius: 8px; font-size: 0.9rem; }
+.demo button:hover { border-color: var(--gold); }
+.demo pre { margin: 10px 0 0; padding: 10px; max-height: 160px; overflow: auto; white-space: pre-wrap; background: #000; border-radius: 6px; font-size: 0.8rem; color: #CFE; }
+
+/* ---------- 16. Smaller screens (phones, portrait tablets) ---------- */
+@media (max-width: 860px) {
+  .reveal-grid { grid-template-columns: 1fr; }
+  .reveal-reading { text-align: center; }
+  .prophecy { border-left: none; padding-left: 0; }
+  .traits { justify-content: center; }
+  .honor-body { grid-template-columns: 1fr; padding: 20px; }
+}
+@media (max-width: 680px) {
+  .choices { grid-template-columns: 1fr; gap: 12px; }
+  .choices.six { grid-template-columns: 1fr 1fr; }
+  .choices.six .choice { flex-direction: column; text-align: center; gap: 8px; }
+  .choice { min-height: 84px; }
+  .ask-chips { grid-template-columns: 1fr; }
+  .crest span:last-child { display: none; }
+  .ctl { min-width: 48px; height: 48px; font-size: 1.25rem; }
+}
+
+/* ---------- 17. Respect visitors who prefer less motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

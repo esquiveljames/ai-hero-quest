@@ -1,0 +1,15 @@
+# Cloudflare Worker configuration (used only if you deploy with the "wrangler" command line tool).
+# The easier dashboard method is in README.md, Step 3.
+
+name = "ai-hero-quest-oracle"      # becomes https://ai-hero-quest-oracle.<your-subdomain>.workers.dev
+main = "worker.js"                 # the code file
+compatibility_date = "2026-09-01"
+
+[vars]
+# Websites allowed to call the Oracle (comma-separated, no trailing slash).
+# Replace YOUR-USERNAME with your GitHub username. localhost is for testing on your laptop.
+ALLOWED_ORIGINS = "https://YOUR-USERNAME.github.io,http://localhost:8000"
+RATE_PER_MINUTE = "20"
+
+# The API key is NOT written here. Add it as a secret:
+#   npx wrangler secret put ANTHROPIC_API_KEY

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Character set so emoji and special letters display correctly -->
+  <meta charset="UTF-8">
+  <!-- Fit phones/tablets; stop pinch-zoom so visitors can't break the layout -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>The AI Hero's Quest · CCS Honor Society</title>
+  <!-- Fantasy fonts from Google Fonts. If offline, the CSS falls back to Georgia. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <!-- All the visual styling -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Floating magical particles are painted on this canvas (js/visuals.js) -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <!-- Drifting mist and a dark vignette around the edges (pure CSS) -->
+  <div id="mist" aria-hidden="true"></div>
+  <div id="vignette" aria-hidden="true"></div>
+
+  <!-- ================= TOP BAR: crest, audio toggles, restart ================= -->
+  <header class="topbar">
+    <!-- Tapping the crest 5 times quickly opens staff Demo Mode (touch-friendly) -->
+    <div class="crest" id="crest">
+      <span class="crest-mark" aria-hidden="true"></span>
+      <span id="crestName">CCS Honor Society</span>
+    </div>
+    <div class="controls">
+      <button class="ctl" id="btnSound" aria-pressed="true"  aria-label="Sound effects on or off" title="Sound effects">🔊</button>
+      <button class="ctl" id="btnMusic" aria-pressed="true"  aria-label="Music on or off" title="Music">🎵</button>
+      <button class="ctl" id="btnVoice" aria-pressed="true"  aria-label="Oracle voice on or off" title="Oracle voice">🎙️</button>
+      <button class="ctl ctl-wide" id="btnRestart" aria-label="Restart for the next visitor">⟲ Restart</button>
+    </div>
+  </header>
+
+  <main id="stage">
+
+    <!-- ================= SCREEN 1: THE PORTAL ================= -->
+    <section class="screen active" id="screen-portal">
+      <div class="inner">
+        <div class="portal">
+          <!-- Original stone archway with rune band (drawn in SVG) -->
+          <svg class="arch" viewBox="0 0 400 480" aria-hidden="true">
+            <defs>
+              <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#3A5A4E"/>
+                <stop offset="1" stop-color="#16302A"/>
+              </linearGradient>
+              <radialGradient id="portalGlow" cx="0.5" cy="0.55" r="0.6">
+                <stop offset="0" stop-color="#BFFFE9" stop-opacity="0.9"/>
+                <stop offset="0.35" stop-color="#3FBF96" stop-opacity="0.45"/>
+                <stop offset="1" stop-color="#05140F" stop-opacity="0"/>
+              </radialGradient>
+              <!-- The curved path the runes follow -->
+              <path id="runePath" d="M70,470 L70,200 A130,130 0 0 1 330,200 L330,470"/>
+            </defs>
+            <!-- The portal opening glows -->
+            <path class="arch-opening" d="M95,470 L95,205 A105,105 0 0 1 305,205 L305,470 Z" fill="url(#portalGlow)"/>
+            <!-- The thick stone frame -->
+            <path d="M40,480 L40,200 A160,160 0 0 1 360,200 L360,480 L305,480 L305,205 A105,105 0 0 0 95,205 L95,480 Z"
+                  fill="url(#stone)" stroke="#0A1C17" stroke-width="3"/>
+            <!-- Stone block seams -->
+            <g stroke="#0A1C17" stroke-width="2" opacity="0.6">
+              <line x1="40" y1="300" x2="95" y2="300"/><line x1="305" y1="300" x2="360" y2="300"/>
+              <line x1="40" y1="390" x2="95" y2="390"/><line x1="305" y1="390" x2="360" y2="390"/>
+              <line x1="62" y1="125" x2="105" y2="160"/><line x1="338" y1="125" x2="295" y2="160"/>
+              <line x1="200" y1="40" x2="200" y2="95"/>
+            </g>
+            <!-- Glowing rune band following the arch -->
+            <text class="runes" font-size="17" fill="#9FF0D2">
+              <textPath href="#runePath" startOffset="2%">ᚺ ᛟ ᚾ ᛟ ᚱ · ᚹ ᛁ ᛋ ᛞ ᛟ ᛗ · ᛋ ᛖ ᚱ ᚹ ᛁ ᚲ ᛖ · ᛖ ᚲ ᛋ ᚲ ᛖ ᛚ ᛚ ᛖ ᚾ ᚲ ᛖ · ᚺ ᛟ ᚾ ᛟ ᚱ</textPath>
+            </text>
+          </svg>
+          <!-- The Honor Sigil sits inside the portal (built by js/visuals.js) -->
+          <div class="sigil-slot portal-sigil" id="portalSigil"></div>
+        </div>
+
+        <h1 class="title">The AI Hero's Quest</h1>
+        <p class="subtitle">Discover your path. Reveal your virtue. Enter the Realm of Honor.</p>
+        <button class="btn btn-primary" id="btnBegin">⚔️ Begin your quest</button>
+        <p class="hero-count" id="heroCount"></p>
+        <p class="privacy-line">No names. No sign-ups. No photos saved.</p>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 2: THE ORACLE ================= -->
+    <section class="screen" id="screen-oracle">
+      <div class="inner">
+        <div class="oracle-figure" id="oracleFigure"></div>
+        <h2 class="oracle-name">The Oracle</h2>
+        <p class="oracle-line" id="oracleLine"></p>
+        <button class="btn btn-primary rv" id="btnAccept">Accept the quest</button>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 3: THE MINI QUEST ================= -->
+    <section class="screen" id="screen-quest">
+      <div class="inner">
+        <ol class="pips" id="questPips" aria-label="Quest progress"></ol>
+        <div class="quest-card" id="questCard">
+          <p class="quest-num" id="questNum"></p>
+          <h2 class="quest-title" id="questTitle"></h2>
+          <p class="quest-text" id="questText"></p>
+          <div class="choices" id="questChoices"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 4: CONSULTING THE ORACLE ================= -->
+    <section class="screen" id="screen-analysis">
+      <div class="inner">
+        <p class="analysis-head">🔮 Consulting the Oracle…</p>
+        <div class="sigil-slot analysis-sigil" id="analysisSigil"></div>
+        <p class="analysis-status" id="analysisStatus" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 5: THE HERO REVEAL ================= -->
+    <section class="screen" id="screen-reveal">
+      <div class="reveal-flash" id="revealFlash" aria-hidden="true"></div>
+      <div class="inner">
+        <p class="reveal-kicker rv" id="revealKicker">✨ The Oracle has spoken</p>
+        <p class="fallback-note rv" id="fallbackNote" hidden>🔮 The Oracle is resting, but the ancient realm still remembers your path.</p>
+
+        <div class="reveal-grid">
+          <!-- Left: the hero identity -->
+          <div class="reveal-hero">
+            <div class="sigil-slot reveal-sigil rv" id="revealSigil"></div>
+            <p class="hero-pre rv" id="heroPre">You are</p>
+            <h2 class="hero-name rv" id="heroName"><span class="hero-icon" id="heroIcon"></span><span id="heroNameText"></span></h2>
+            <div class="virtue-banner rv" id="virtueBanner">
+              <span id="primaryVirtue"></span>
+              <small id="secondaryVirtue"></small>
+            </div>
+          </div>
+
+          <!-- Right: the AI-written reading -->
+          <div class="reveal-reading">
+            <div class="block rv" id="blockReading">
+              <h3>🔮 The Oracle's reading</h3>
+              <p class="hero-desc" id="heroDesc"></p>
+            </div>
+            <p class="prophecy rv" id="heroProphecy"></p>
+            <div class="block rv" id="blockTraits">
+              <h3>Your hero traits</h3>
+              <div class="traits" id="heroTraits"></div>
+            </div>
+            <div class="scroll rv" id="blockQuest">
+              <h3>🌟 Your quest</h3>
+              <p id="heroQuest"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal-actions rv" id="revealActions">
+          <button class="btn btn-stone" id="btnAsk">🔮 Ask the Oracle</button>
+          <button class="btn btn-stone" id="btnSelfie">📸 Capture your hero</button>
+          <button class="btn btn-stone" id="btnHonor">🏆 Meet the Honor Society</button>
+          <button class="btn btn-primary" id="btnNew">⚔️ New quest</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SCREEN 6: THE HONOR SOCIETY ================= -->
+    <section class="screen" id="screen-honor">
+      <div class="inner">
+        <div class="honor">
+          <p class="honor-closing" id="honorClosing1"></p>
+          <p class="honor-closing-sub" id="honorClosing2"></p>
+
+          <div class="honor-body">
+            <div class="honor-col">
+              <h2 class="honor-name" id="honorName"></h2>
+              <p class="honor-year" id="honorYear"></p>
+              <h3>Our purpose</h3>
+              <p id="honorPurpose"></p>
+              <h3>How we help</h3>
+              <ul id="honorActivities"></ul>
+            </div>
+            <div class="honor-col">
+              <h3>Membership</h3>
+              <ul id="honorMembership"></ul>
+              <p class="honor-cta" id="honorCtaScholar"></p>
+              <p class="honor-cta" id="honorCtaAll"></p>
+              <div class="honor-contact">
+                <div id="honorQr" class="qr" hidden></div>
+                <p id="honorContact"></p>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="honor-ask">⚔️ What's your heroic path?</h2>
+          <div class="honor-actions">
+            <button class="btn btn-stone" id="btnBackHero" hidden>Back to my hero</button>
+            <button class="btn btn-primary" id="btnBeginHonor">Begin your quest</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= MODAL: ASK THE ORACLE ================= -->
+  <div class="modal" id="modalAsk" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+    <div class="modal-panel">
+      <h2 id="askTitle">🔮 Ask the Oracle</h2>
+      <div class="ask-chips" id="askChips"></div>
+      <div class="ask-type" id="askType">
+        <input type="text" id="askInput" maxlength="150" placeholder="Or type your own question…" autocomplete="off">
+        <button class="btn btn-stone" id="askSend">Ask</button>
+      </div>
+      <p class="ask-answer" id="askAnswer" aria-live="polite"></p>
+      <button class="btn btn-primary" id="askClose">Return to my hero</button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CAPTURE YOUR HERO ================= -->
+  <div class="modal" id="modalCamera" role="dialog" aria-modal="true" aria-label="Capture your hero">
+    <div class="modal-panel camera-panel">
+      <div class="cam-stage">
+        <!-- The raw camera feed stays hidden; we draw it onto the canvas with the overlay -->
+        <video id="camVideo" playsinline muted hidden></video>
+        <canvas id="camCanvas" width="1280" height="720"></canvas>
+        <div class="cam-countdown" id="camCountdown" aria-live="assertive"></div>
+      </div>
+      <p class="cam-msg" id="camMsg"></p>
+      <div class="cam-actions">
+        <button class="btn btn-primary" id="camTake">📸 Take photo</button>
+        <button class="btn btn-stone" id="camRetry" hidden>Try again</button>
+        <button class="btn btn-stone" id="camDone">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: SECRET QUEST ================= -->
+  <div class="modal" id="modalSecret" role="dialog" aria-modal="true" aria-labelledby="secretTitle">
+    <div class="modal-panel secret-panel">
+      <h2 id="secretTitle"></h2>
+      <p id="secretText"></p>
+      <p class="secret-hint" id="secretHint"></p>
+      <button class="btn btn-primary" id="secretClose">Continue</button>
+    </div>
+  </div>
+
+  <!-- Fade-out veil used when the booth resets for the next visitor -->
+  <div class="veil" id="veil"><p>The realm awaits the next hero…</p></div>
+
+  <!-- Small message bubble for staff notices -->
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- ============ SCRIPTS (order matters: config first, app last) ============ -->
+  <!-- QR code library (optional). If offline, the QR code is simply skipped. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="config/settings.js"></script>
+  <script src="config/society.js"></script>
+  <script src="config/archetypes.js"></script>
+  <script src="config/questions.js"></script>
+  <script src="js/visuals.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/wall.js"></script>
+  <script src="js/fallback.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
