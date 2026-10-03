@@ -25,6 +25,7 @@ ai-hero-quest/
 │   ├── audio.js          Procedural music, sound effects, Oracle voice
 │   ├── visuals.js        Particles, Honor Sigil, Oracle artwork
 │   ├── camera.js         Hero selfie frame (nothing saved)
+│   ├── print.js          Print / Save as PDF "Hero Charter" (A4)
 │   ├── wall.js           "Heroes discovered today" counter
 │   └── demo.js           Hidden staff Demo Mode
 └── server/
@@ -244,10 +245,28 @@ The duplicated lists are intentional: the server must not trust the browser for 
 - [ ] Two visitors in a row → second sees no trace of the first
 - [ ] Touchscreen taps, mouse clicks, and keyboard 1–6 all work
 - [ ] Phone browser: layout scrolls and buttons are tappable
+- [ ] Print / Save PDF → Print to printer → preview shows one A4 page with the hero image
+- [ ] Print / Save PDF → Save as PDF → a .pdf downloads and opens as one A4 page
+- [ ] Demo Mode → "Test print / PDF" works
 
 ---
 
-## 14. About VR
+## 14. Print / Save as PDF (the Hero Charter)
+
+After the reveal, tap **🖨️ Print / Save PDF**. A window shows a preview of the visitor's one-page A4 **Hero Charter** with two choices:
+
+- **🖨️ Print to printer** opens the browser's print dialog. The page is set to A4 portrait with no margins, and only the charter prints.
+- **📄 Save as PDF** downloads `hero-charter-the-guardian.pdf` (named after the hero), made inside the browser with jsPDF. Nothing is uploaded. If jsPDF can't load (offline), the print dialog opens instead; choose **Save as PDF** as the printer.
+
+The charter includes an original illustration of the hero as an armored warrior in their own colors, with a signature item (Guardian: shield, Vanguard: banner, Sage: crystal staff and tome, Paragon: glowing blade, Oathkeeper: great key, Hearthbuilder: lantern). It also includes the hero name, virtues, the Oracle's reading, prophecy, traits, quest, the Honor Society's closing message, and the date.
+
+The art is drawn as vector shapes, not a background image, so it prints even when **Background graphics** is switched off in the print dialog. The visitor's selfie is never included, keeping the "no photos saved" promise.
+
+**Booth tips:**
+- To print instantly without the dialog, start Chrome with `--kiosk --kiosk-printing` (prints to the default printer).
+- A PDF saved at the booth lands in the booth laptop's Downloads folder. It's most useful when visitors open the site on their own phones; consider putting the site URL's QR code on your signage.
+
+## 15. About VR
 
 VR is intentionally not included. A ₱200–₱500 phone headset offers inconsistent browser support, gaze-only input, discomfort and hygiene problems, and slow visitor turnover, and it would pull attention from the AI reveal. Spend that budget on a Bluetooth speaker, warm lighting, or printed Hero cards with your QR code.
 

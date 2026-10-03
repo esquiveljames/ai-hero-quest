@@ -158,6 +158,7 @@
         <div class="reveal-actions rv" id="revealActions">
           <button class="btn btn-stone" id="btnAsk">🔮 Ask the Oracle</button>
           <button class="btn btn-stone" id="btnSelfie">📸 Capture your hero</button>
+          <button class="btn btn-stone" id="btnPrint">🖨️ Print / Save PDF</button>
           <button class="btn btn-stone" id="btnHonor">🏆 Meet the Honor Society</button>
           <button class="btn btn-primary" id="btnNew">⚔️ New quest</button>
         </div>
@@ -234,6 +235,25 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: PRINT / SAVE AS PDF ================= -->
+  <div class="modal" id="modalPrint" role="dialog" aria-modal="true" aria-labelledby="printTitle">
+    <div class="modal-panel print-panel">
+      <h2 id="printTitle">🖨️ Your Hero Charter</h2>
+      <div class="print-layout">
+        <!-- A small preview of the A4 page (built by js/print.js) -->
+        <div class="print-preview" id="printPreview"></div>
+        <div class="print-options">
+          <button class="btn btn-primary" id="printBtnPrinter">🖨️ Print to printer</button>
+          <p class="print-hint">Opens the print dialog. A4, portrait.</p>
+          <button class="btn btn-primary" id="printBtnPdf">📄 Save as PDF</button>
+          <p class="print-hint">Downloads your charter as a .pdf file.</p>
+          <p class="print-status" id="printStatus" aria-live="polite"></p>
+          <button class="btn btn-stone" id="printClose">Return to my hero</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL: SECRET QUEST ================= -->
   <div class="modal" id="modalSecret" role="dialog" aria-modal="true" aria-labelledby="secretTitle">
     <div class="modal-panel secret-panel">
@@ -247,12 +267,17 @@
   <!-- Fade-out veil used when the booth resets for the next visitor -->
   <div class="veil" id="veil"><p>The realm awaits the next hero…</p></div>
 
+  <!-- The printable A4 sheet goes here only while printing (see css "PRINT") -->
+  <div id="printArea" aria-hidden="true"></div>
+
   <!-- Small message bubble for staff notices -->
   <div class="toast" id="toast" role="status"></div>
 
   <!-- ============ SCRIPTS (order matters: config first, app last) ============ -->
   <!-- QR code library (optional). If offline, the QR code is simply skipped. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- PDF library (optional). If offline, "Save as PDF" uses the print dialog instead. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="config/settings.js"></script>
   <script src="config/society.js"></script>
   <script src="config/archetypes.js"></script>
@@ -263,6 +288,7 @@
   <script src="js/fallback.js"></script>
   <script src="js/ai.js"></script>
   <script src="js/camera.js"></script>
+  <script src="js/print.js"></script>
   <script src="js/demo.js"></script>
   <script src="js/app.js"></script>
 </body>

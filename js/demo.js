@@ -88,6 +88,11 @@ window.HQ = window.HQ || {};
     // Other tests
     section("Booth", [
       button("Test camera", () => { HQ.app.showDemoHero("guardian", true); log("Opening camera with a demo hero"); }),
+      button("Test print / PDF", () => {
+        if (!HQ.app.state.result) HQ.app.showDemoHero("vanguard");
+        setTimeout(() => HQ.app.openPrint(), 300);
+        log("Opening the print window" + (window.jspdf ? "" : " (PDF library not loaded: Save as PDF will use the print dialog)"));
+      }),
       button("Show Honor screen", () => HQ.app.go("honor")),
       button("Reset statistics", () => { HQ.wall.reset(); HQ.app.refreshPortal(); log("Today's hero count reset"); }),
       button("Return to Exhibit Mode", () => { toggle(false); HQ.app.reset(false); })

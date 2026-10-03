@@ -396,6 +396,14 @@ window.HQ = window.HQ || {};
     HQ.camera.open(state.result.hero, () => { if (state.modal === "camera") state.modal = null; });
   }
 
+  // Print / Save as PDF window (js/print.js)
+  function openPrint() {
+    if (!state.result) return;
+    HQ.audio.sfx("click");
+    state.modal = "print";
+    HQ.print.open(state.result, () => { if (state.modal === "print") state.modal = null; });
+  }
+
   // Fill the Honor Society screen from config/society.js
   function renderHonor() {
     $("crestName").textContent = SOCIETY.shortName;
@@ -427,6 +435,7 @@ window.HQ = window.HQ || {};
     $("modalAsk").classList.remove("open");
     $("modalSecret").classList.remove("open");
     HQ.camera.close();
+    HQ.print.close();
     state.modal = null;
   }
 
@@ -527,6 +536,7 @@ window.HQ = window.HQ || {};
   $("btnAccept").addEventListener("click", startQuest);
   $("btnAsk").addEventListener("click", openAsk);
   $("btnSelfie").addEventListener("click", openSelfie);
+  $("btnPrint").addEventListener("click", openPrint);
   $("btnHonor").addEventListener("click", () => { HQ.audio.sfx("click"); state.attract = false; go("honor"); });
   $("btnBackHero").addEventListener("click", () => { HQ.audio.sfx("click"); go("reveal"); HQ.audio.setMood("calm"); });
   $("btnNew").addEventListener("click", () => { HQ.audio.sfx("whoosh"); reset(true); });
@@ -575,7 +585,7 @@ window.HQ = window.HQ || {};
 
   // Things Demo Mode needs
   HQ.app = {
-    go, reset, refreshPortal, showDemoHero,
+    go, reset, refreshPortal, showDemoHero, openPrint,
     setDemoOpen: (open) => { state.demoOpen = open; state.lastActivity = Date.now(); },
     state
   };
